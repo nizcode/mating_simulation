@@ -4,6 +4,10 @@ source("samputils.R")
 library('HardyWeinberg')
 source('hardy.R')
 source('dissort_mat.R')
+library('doParallel')
+cores=detectCores()
+cl <- makeCluster(cores[1]-1) #not to overload your computer, cores = 8
+registerDoParallel(cl)
 
 cat('write in population size, followed by a space and then followed by the number of simulation you want','dissortative mating, yes or no')
 
@@ -16,7 +20,7 @@ if(numargs != enumargs) {
 }
 N<-as.numeric(args[1])#pop size
 n<-as.numeric(args[2])#number of sim
-d <-'yes' #as.character(args[3])#dissortative function yes or no
+d <-as.character(args[3])#dissortative function yes or no
 
 options(warn=-1)
 
@@ -145,7 +149,7 @@ sim<-function(N){
   
   
   gty1<-ma[,3]
-  gty2<-ma2[,3]
+  gty2<-ma3[,3]
   gty3<-ma4[,3]
   
   return(list(gty1,gty2,gty3)) #returns the genotypes(0,1 and 2s) of each generation
@@ -162,27 +166,32 @@ sort_rows<-function(gty){
 }
 
 #This next part creates a table of MM MN NN pval chisq, the output of this script
-all_gt<-list()
-all_res<-list()
+
+Result <- list()
 for(gtion in 1:3){
-  gt<-matrix(nrow = n,ncol=3)
-  type <- c("MM","MN","NN")
-  colnames(gt) <- type
-  res<-matrix(nrow=n,ncol=3)
-  
-  for(i in 1:n){
-    gt[i,]<-sort_rows(sim(N)[[gtion]])
-    res[i,]<-c(HWChisq(gt[i,])$pval,HWChisq(gt[i,])$chisq,hetr(gt[i,]))
-    res_type <- c("pval","chisq","heterozygosity")
-    colnames(res) <- res_type
-    all_gt[[gtion]] <- gt  
-    all_res[[gtion]]<- res
-    all_gt[[gtion]] <- cbind(all_gt[[gtion]],all_res[[gtion]])
+  gt <- foreach(i = 1:n, .combine = rbind)%dopar%{#uses more than one core
+    sort_rows(sim(N)[[gtion]])
+    
     
   }
+  gt <- matrix(gt,ncol=3)
+  res <- apply(gt,1,HWChisq)
+  resher <- apply(gt,1,hetr)
+  
+  resy <- foreach(i=1:n, .combine = rbind)%dopar%{
+    c(res[[i]]$pval,res[[i]]$chisq,resher[i])
+    
+  }
+  Result[[gtion]]<- cbind(gt,resy)
+  res_type <- c("MM","MN","NN","pval","chisq","heterozygosity")
+  colnames(Result[[gtion]]) <- res_type
 }
 
-Result<-list("Genration1" = all_gt[[1]],"Genration2" = all_gt[[2]] ,"Genration3" = all_gt[[3]] )
+
+stopCluster(cl)
+
+
+Result<-list("Genration1" = Result[[1]],"Genration2" = Result[[2]] ,"Genration3" = Result[[3]] )
 
 for(i in 1:3) {
   write.table(Result[[i]],file=paste0("Sim_gen",i,'_',N,'_',n,'_',d,'.txt'))
