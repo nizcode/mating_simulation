@@ -9,18 +9,18 @@ cores=detectCores()
 cl <- makeCluster(cores[1]-1) #not to overload your computer, cores = 8
 registerDoParallel(cl)
 
-cat('write in population size, followed by a space and then followed by the number of simulation you want','dissortative mating, yes or no')
+cat('write in population size, followed by a space and then followed by the number of simulation you want','fraction (in decimal) of disassortive mating you want')
 
 args <- commandArgs(trailingOnly = TRUE)
 numargs <- length(args)
 enumargs <- 3 
 if(numargs != enumargs) {
-  print("sample population number, the number of simuations")
+  print("sample population number, the number of simuations, amount of disassortive mating you want in decimal")
   stop("Stopping right here")
 }
 N<-as.numeric(args[1])#pop size
 n<-as.numeric(args[2])#number of sim
-d <-as.character(args[3])#dissortative function yes or no
+diss<-as.numeric(args[3])#dissortative function yes or no
 
 options(warn=-1)
 
@@ -106,48 +106,89 @@ sim<-function(N){
     ma3<-ma2[evr,]
     
   }
-  #---dissort here---
-  if(d == 'yes'){
-    ma3<- dissort(ma3)
+   #p diss
+  if(diss == 1){
+    ma3 <- dissort(ma3)
     colnames(ma3) <- attrinames
-  } else{
+    ma3s<-list(ma3)
+  }else{
+  sz <- nrow(ma3)
+  sz2 <- sz/2
+  shum <- sample(1:sz2, sz2)
+  shuf <- sample((sz2+1):sz,sz2)
   
-  Nma3 <- nrow(ma3)
+  mul <- sz2*diss
+  md <- shum[1:mul]
+  mf <- shuf[1:mul]
+  
+  ma2dm <- ma3[md,]
+  ma2df <- ma3[mf,]
+  
+  ma3d <- rbind(ma2dm,ma2df)
+  ma3r <- ma2[-c(md,mf),]
+  
+  
+  #--- dissort --- here
+  
+  
+  ma3d<- dissort(ma3d)
+  colnames(ma3d) <- attrinames
+  
+  Nma3 <- nrow(ma3r)
   dNma3 <- Nma3/2
-  #ma4 is generation3, and the next part here follows the same process as generation2
-  FID <- ma3[1:Nma3,1]
-  ma3 <- cbind(ma3, c(rev(FID),FID))
-  attrinames2 <- c(attrinames2, 'MTE')
-  colnames(ma3) <- attrinames2
+  
+  FID <- ma3r[1:Nma3,1]
+  # so we can cbind() to our matrix, right?
+  # Well, no. We need to give the female rows the number of the male they matched with
+  # so the reverse of rshuf .. actually this is a tiny bit tricky
+  ma3r <- cbind(ma3r, c(rev(FID),FID))
+  attrinames2 <- c(attrinames2,'MTE')
+  colnames(ma3r) <- attrinames2
+  
+  
+  ma3s <- list(ma3d,ma3r)
   }
-  Nma3 <- nrow(ma3)
-  dNma3 <- Nma3/2
+  ma4s <- list()
   
-  offnum <- ma3[1:dNma3,1]
-  ma4 <- matrix(offnum, ncol=1)
-  attrinames2 <- 'FID'
-  colnames(ma4) <- attrinames2
-  
-  g2N <- noff*dNma3
-  ma4 <- cbind(ma4, givesx(g2N))
-  attrinames2 <- c(attrinames2, 'SEX')
-  colnames(ma4) <- attrinames2
-  
-  malegts <-ma3[1:dNma3,3]
-  femalegts <- rev(ma3[(dNma3+1):Nma3,3])
-  gt2 <- mapply(gengt, malegts, femalegts)
-  if(noff>2){
-    for(i in 2:noff) {
-      gt2 <- c(gt2, mapply(gengt, malegts, femalegts)) # 
+  for(i in 1:length(ma3s)){
+    
+    Nma3 <- nrow(ma3s[[i]])
+    dNma3 <- Nma3/2
+    
+    offnum <- ma3s[[i]][1:dNma3,1] # FIDs assigned sequentially along
+    ma4s[[i]] <- matrix(offnum, ncol=1)
+    attrinames2 <- 'FID'
+    colnames(ma4s[[i]]) <- attrinames2
+    
+    # OK, what's next? Well , their sex. That's just random
+    # I've turned it into a function, though it hardly needs it
+    g2N <- noff*dNma3
+    ma4s[[i]] <- cbind(ma4s[[i]], givesx(g2N))
+    attrinames2 <- c(attrinames2, 'SEX')
+    colnames(ma4s[[i]]) <- attrinames2
+    
+    malegts <-ma3s[[i]][1:dNma3,3]
+    femalegts <- rev(ma3s[[i]][(dNma3+1):Nma3,3])#ma3[ma3[1:dNma3,4],3]
+    gt2 <- mapply(gengt, malegts, femalegts)
+    # then concatenate the rest
+    if(noff>2){
+      for(i in 2:noff) {
+        gt2 <- c(gt2, mapply(gengt, malegts, femalegts))
+      }
     }
+    
+    ma4s[[i]] <- cbind(ma4s[[i]], gt2)
+    attrinames2 <- c(attrinames2, 'GTY')
+    colnames(ma4s[[i]]) <- attrinames2
+  }  
+  
+  if(diss != 1){
+  ma3 <- rbind(ma3s[[1]][,-5],ma3s[[2]]) 
+  ma4 <- rbind(ma4s[[1]],ma4s[[2]]) 
+  }else{
+    ma3 <- ma3s[[1]]
+    ma4 <- ma4s[[1]]
   }
-  
-  ma4 <- cbind(ma4, gt2)
-  attrinames2 <- c(attrinames2, 'GTY')
-  colnames(ma4) <- attrinames2
-  
-  
-  
   gty1<-ma[,3]
   gty2<-ma3[,3]
   gty3<-ma4[,3]
@@ -174,6 +215,7 @@ for(gtion in 1:3){
     
     
   }
+  
   gt <- matrix(gt,ncol=3)
   res <- apply(gt,1,HWChisq)
   resher <- apply(gt,1,hetr)
@@ -183,8 +225,8 @@ for(gtion in 1:3){
     
   }
   Result[[gtion]]<- cbind(gt,resy)
-  res_type <- c("MM","MN","NN","pval","chisq","heterozygosity")
-  colnames(Result[[gtion]]) <- res_type
+  #res_type <- c("MM","MN","NN","pval","chisq","heterozygosity")
+  #colnames(Result[[gtion]]) <- res_type
 }
 
 
@@ -194,7 +236,7 @@ stopCluster(cl)
 Result<-list("Genration1" = Result[[1]],"Genration2" = Result[[2]] ,"Genration3" = Result[[3]] )
 
 for(i in 1:3) {
-  write.table(Result[[i]],file=paste0("Sim_gen",i,'_',N,'_',n,'_',d,'.txt'))
+  write.table(Result[[i]],file=paste0("Sim_gen",i,'_',N,'_',n,'_',diss,'.txt'))
 }
 
-save(Result,file = paste0('Sim_result',N,'_',n,'_',d,'.Rdata'))
+save(Result,file = paste0('Sim_result',N,'_',n,'_',diss,'.Rdata'))

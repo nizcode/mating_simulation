@@ -17,7 +17,7 @@ and because of dissortative mating not all males will find their female
 # simulation.R
 
 Input
-arg1 = sample population size, arg2 = the number of simulation you want, arg3 = 'yes' if you want disassortative mating or 'no' if you dont
+arg1 = sample population size, arg2 = the number of simulation you want, arg3 = the fraction(in decimal) of disassortive mating you want 
 Output
 3 files in text format, one for each generation. 
 MM MN NN pval chisq heterozygosity, these are the columns and the rows is the simulation number
@@ -25,8 +25,8 @@ There is also an .Rdata file which is written
 The name of ouput file look like -> Random_sim_gen(arg1)_(arg2)_(arg3).txt/.Rdata
 
 #dissort() function
-if args3 = 'yes' then the dissort() function will be executed on 2nd generation only
-all males will be paired with females of opposite genotypes 
+if args3 = '0.8' then the dissort() function will be executed on 80% of the people in 2nd generation only
+ie 80% of the  males will be paired with females of opposite genotypes 
 ie, if MM(0) it can only be paired with a female of genotype Mm(1) or mm(2)
 for 1 = 2 or 0
 and for 2 = 1 or 0
