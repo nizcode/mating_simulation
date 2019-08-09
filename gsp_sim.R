@@ -14,13 +14,14 @@ cat('write in population size, followed by a space and then followed by the numb
 
 args <- commandArgs(trailingOnly = TRUE)
 numargs <- length(args)
-enumargs <- 3 
+enumargs <- 4 
 if(numargs != enumargs) {
-  print("sample population number, the number of simuations, amount of disassortive mating you want in decimal")
+  print("sample population number, the number of simuations, amount of disassortive mating you want in decimal, and the number of couples you want in parent generation")
   stop("Stopping right here")
 }
 N<-as.numeric(args[1])#pop size
 n<-as.numeric(args[2])#number of sim
+psize <- as.numeric(args[4]) #number of couples in parents
 diss<-as.numeric(args[3])#dissortative function yes or no
 
 options(warn=-1)
@@ -136,7 +137,7 @@ sim<-function(N){
   }
    #p diss
   if(diss == 1){
-    ma3 <- dissort(ma3)
+    ma3 <- genDis(ma3)
     colnames(ma3) <- attrinames
     ma3s<-list(ma3)
   }else{
@@ -159,7 +160,7 @@ sim<-function(N){
   #--- dissort --- here
   
   
-  ma3d<- dissort(ma3d)
+  ma3d<- genDis(ma3d)
   colnames(ma3d) <- attrinames
   
   Nma3 <- nrow(ma3r)
@@ -218,8 +219,18 @@ sim<-function(N){
     ma4 <- ma4s[[1]]
   }
   ma3 <- ma3[order(ma3[,2]),]
+  
+  
   g2N <- nrow(ma3)
   g2Nd <- g2N/2
+  #naishas paper = 1558 males and 1558 females
+  nz <- g2Nd - psize
+  omi<-sample(ma3[1:g2Nd,1],psize)
+  ma3 <- ma3[-(which(ma3[,5]%in%omi)),]
+  
+  g2N <- nrow(ma3)
+  g2Nd <- g2N/2
+  
   
   g2m <- ma3[1:g2Nd,3]
   g2f <- ma3[(g2Nd+1):g2N,3]
@@ -274,10 +285,10 @@ for(gtion in 1:5){
 stopCluster(cl)
 
 
-Result<-list("Gen1_male" = Result[[1]],"Gen1_female" = Result[[2]],"Gen2_male" = Result[[3]],"Gen2_female" = Result[[4]],'Probands' = Result[[5]])
+#Result<-list("Gen1_male" = Result[[1]],"Gen1_female" = Result[[2]],"Gen2_male" = Result[[3]],"Gen2_female" = Result[[4]],'Probands' = Result[[5]])
 
-for(i in 1:5) {
-  write.table(Result[[i]],file=paste0(names(Result[i]),'_',N,'_',n,'_',diss,'.txt'))
-}
+#for(i in 1:5) {
+  #write.table(Result[[i]],file=paste0(names(Result[i]),'_',N,'_',n,'_',diss,'_',pszie,'_','.txt'))
+#}
 
-save(Result,file = paste0('gsp_sim',N,'_',n,'_',diss,'.Rdata'))
+save(Result,file = paste0('gsp_sim',N,'_',n,'_',diss,'_',psize,'_','.Rdata'))

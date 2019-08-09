@@ -130,7 +130,8 @@ for(i in 1:Nd2){
     
     
     for(i in 1:length(boys)){
-      ma[which(ma[,1]==girls[i]),4] <- boys[i]
+      ma[which(ma[,1]==ma[i,4]),4]<-ma[i,1]
+      #ma[which(ma[,1]==girls[i]),4] <- boys[i]
       
     }
     
