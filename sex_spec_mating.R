@@ -76,24 +76,23 @@ for(i in 1:Nd2){
   #m1m0 <- co1/(co1+co0)
   #m2m10 <- co2/(co10+co2)
   rm210 <- co2/co10 
-  
   if((mal[i,3]==0)&&(co2<1)) {
     
-    mates[i,]<-NA#this is common enough actually whereby there is no negative assortive mate, in this case an NA is assigned and this person will be later omitted
+    mates[i,]<-NA
   } else if((mal[i,3]==0)&&(co2>1)) {
     id2<-m2mix[co2]
     mates[i,]<-id2
     co2<-co2-1
   #else if((mal[1,3]!=0)&&(co10<1)&&(co2<1)
     #mates[i,]<-NA
-  } else if((mal[1,3]!=0)&& (co2 < 1) && (co10 < 1)){
+  } else if((mal[i,3]!=0)&& (co2 < 1) && (co10 < 1)){
     mates[i,]<- NA
-  } else if((mal[1,3]!=0)&& co2 > 1){
+  } else if(mal[i,3]!=0){
       r <- runif(1)
-      if(r < rm210){
+      if((r < rm210)&&(co2>1)){
       mates[i,] <- m2mix[co2]
       co2<-co2-1
-  }   else{
+  }   else if(r>rm210){
       mates[i,]<-m10mix[co10]
       co10<-co10-1
   }
@@ -127,7 +126,7 @@ for(i in 1:Nd2){
   
   
   #reverse permutation, if rows != FID, reason I have an IF statement here is because, if I can avoid doing a loop I will!
-  if(FALSE %in% (ma[,1] %in% 1:nrow(ma)) == TRUE){
+  #if(FALSE %in% (ma[,1] %in% 1:nrow(ma)) == TRUE){
     
     
     for(i in 1:length(boys)){
@@ -139,18 +138,18 @@ for(i in 1:Nd2){
     
     ma <- cbind(ma,fid)
     #the reverse permutation, if rows = FIDs, reason , if FID == rows, no need for loop = more effecient
-  }else{
-    ma <- ma[order(ma[,1],decreasing = FALSE),]
-    mty <- ma[,4]
-    maw <- ma[,-4]
+  #}else{
+  #  ma <- ma[order(ma[,1],decreasing = FALSE),]
+  #  mty <- ma[,4]
+  #  maw <- ma[,-4]
     
     
-    fshufr <- rep(0,Nd2)
-    fshuf <- ma[(Nd2+1):N,1]
-    fshufr[fshuf-Nd2] <- 1:Nd2
+  #  fshufr <- rep(0,Nd2)
+  #  fshuf <- ma[(Nd2+1):N,1]
+  #  fshufr[fshuf-Nd2] <- 1:Nd2
     
-    ma <- cbind(ma, c(fshuf, fshufr),c(1:Nd2, fshufr))
-  }
+  #  ma <- cbind(ma, c(fshuf, fshufr),c(1:Nd2, fshufr))
+  #}
   
   
   

@@ -29,7 +29,7 @@ options(warn=-1)
 sim<-function(N){
   Nd2 <- N/2 
   #ma is the table of the generation1
-  #set.seed(q) #for debugging
+  #set.seed(128) #for debugging
   ma <- matrix(c(1:N, rep(0,Nd2), rep(1,Nd2)), ncol=2, byrow=FALSE)
   # setting up the matrix, with tha males at the top and females at the bottom, makes the mating process easier
   
@@ -37,7 +37,9 @@ sim<-function(N){
   
   attrinames <- c('IID', 'SEX', 'GTY')
   colnames(ma) <- attrinames
-  
+  if(diss == 1){
+    ma <- genDis(ma)
+  }else{
   mam <- ma[1:Nd2,]
   maf <- ma[(Nd2+1):N,]
   madm <- mam[1:(Nd2*diss),]
@@ -68,7 +70,7 @@ sim<-function(N){
   
   ma <- rbind(mad,mar)
   ma <- ma[order(ma[,1],decreasing = FALSE),]
-  
+  }
   attrinames <- c(attrinames, 'MTE', 'FID')
   colnames(ma) <- attrinames
   
