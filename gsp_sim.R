@@ -27,14 +27,16 @@ diss<-as.numeric(args[3])#dissortative function yes or no
 options(warn=-1)
 
 #the function the simulates 3 generations
+
+
 sim<-function(N){
   Nd2 <- N/2 
   #ma is the table of the generation1
-  #set.seed(128) #for debugging
+  #set.seed(120) for debugging
   ma <- matrix(c(1:N, rep(0,Nd2), rep(1,Nd2)), ncol=2, byrow=FALSE)
   # setting up the matrix, with tha males at the top and females at the bottom, makes the mating process easier
   
-  ma <- cbind(ma, rep(c(0,1,1,2), N/4))#allelic frequencies, 0,1,2 in ratio of 1:2:1
+  ma <- cbind(ma, rep(c(0,1,2), times = (c(N*0.81,N*0.09,N*0.01))))
   
   attrinames <- c('IID', 'SEX', 'GTY')
   colnames(ma) <- attrinames
