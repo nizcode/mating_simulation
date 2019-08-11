@@ -1,4 +1,7 @@
 #!/usr/bin/env Rscript
+source('hardy.R')
+
+
 #---Odds ratio ---
 
 # Naisha was calculating was ((mum with gene)/(mum no gene))/((dad with gene)/(dad no gene)) = 1.63
@@ -18,7 +21,7 @@ N <- args[1]
 n <- args[2]
 d <- args[3]
 psize <- args[4]
-data <- get(load(paste0('gsp_sim',N,'_',n,'_',d,'_',psize,'_','.Rdata')))
+data <- get(load(paste0('Res_0112/gsp_sim',N,'_',n,'_',d,'_',psize,'_','.Rdata')))
 
 carr <- function(gty){
   ca1<-gty[2] * 0.5
@@ -41,8 +44,13 @@ for(i in 1:5){
 
 
 
+
+
 g2c<-cbind( matrix(data[[4]][,7], ncol = 1),  matrix(data[[3]][,7], ncol = 1) )
 oddr <- apply(g2c,1,function(x) x[1]/x[2])
+avgMalHet <- mean(data[[3]][,6])
+avgFemHet <- mean(data[[4]][,6])
 
 write.table(oddr, file = paste0('oddsRatio_Parents_',N,'_',n,'_','_',d,'_',psize,'_','.txt'))
 cat(paste('this is the average of the odds ratio for the parents',mean(oddr),'\n', sep = ' '))
+cat(paste('this is the average of fathers heterzygotes',avgMalHet,'and average female heterozygotes',avgFemHet,'\n',sep =' '))
