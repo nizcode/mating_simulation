@@ -47,8 +47,9 @@ for(i in 1:2){
 
 
 
+pht[[1]]
+plotly_IMAGE(ppl[[1]], format = "png", out_file = paste0("pval_diss",d,".png"))
+plotly_IMAGE(pht[[1]], format = "png", out_file = paste0("hetero_diss",d,".png"))
 
-plotly_IMAGE(ppl[[2]], format = "png", out_file = paste0("pval_diss",d,".png"))
-plotly_IMAGE(pht[[2]], format = "png", out_file = paste0("hetero_diss",d,".png"))
 
 

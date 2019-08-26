@@ -19,9 +19,27 @@ if(numargs != enumargs) {
 }
 N <- args[1]
 n <- args[2]
-d <- args[3]
+diss <- args[3]
 psize <- args[4]
-data <- get(load(paste0('Res_0112/gsp_sim',N,'_',n,'_',d,'_',psize,'_','.Rdata')))
+data <- get(load(paste0('gsp_sim',N,'_',n,'_',diss,'_',psize,'_','.Rdata')))
+
+odds01 <- function(gty){
+  co0 <- gty[1]
+  co1 <- gty[2]
+  co2 <- gty[3]
+  rt01 <- co0/co1
+  rt21 <- co2/co1
+  return(rt01)
+}
+
+odds21 <- function(gty){
+  co0 <- gty[1]
+  co1 <- gty[2]
+  co2 <- gty[3]
+  rt01 <- co0/co1
+  rt21 <- co2/co1
+  return(rt21)
+}
 
 carr <- function(gty){
   ca1<-gty[2] * 0.5
@@ -34,23 +52,43 @@ carr <- function(gty){
   return(p)
 }
 
-
-for(i in 1:5){
-  ac <- apply(data[[i]][,1:3],1,carr)
-  ac <- matrix(ac)
-  data[[i]]<-cbind(data[[i]],ac)
+or01 <- list()
+or21 <- list()
+for(i in 1:2){
+  or01[[i]] <- apply(data[[i]][,1:3],1,odds01)
+  or21[[i]] <- apply(data[[i]][,1:3],1,odds21)
   
 }
 
+or01 <- or01[[2]]/or01[[1]]
+or21 <- or21[[2]]/or21[[1]]
+
+m01 <- mean(or01)
+m21 <- mean(or21)
 
 
 
 
-g2c<-cbind( matrix(data[[4]][,7], ncol = 1),  matrix(data[[3]][,7], ncol = 1) )
-oddr <- apply(g2c,1,function(x) x[1]/x[2])
-avgMalHet <- mean(data[[3]][,6])
-avgFemHet <- mean(data[[4]][,6])
 
-write.table(oddr, file = paste0('oddsRatio_Parents_',N,'_',n,'_','_',d,'_',psize,'_','.txt'))
-cat(paste('this is the average of the odds ratio for the parents',mean(oddr),'\n', sep = ' '))
-cat(paste('this is the average of fathers heterzygotes',avgMalHet,'and average female heterozygotes',avgFemHet,'\n',sep =' '))
+
+#g2c<-cbind( matrix(data[[2]][,7], ncol = 1),  matrix(data[[1]][,7], ncol = 1) )
+#oddr <- apply(g2c,1,function(x) x[1]/x[2])
+avgMalHet <- mean(data[[1]][,6])
+avgFemHet <- mean(data[[2]][,6])
+pvsM <- length(which(data[[1]][,4]<0.05))
+pvsF <- length(which(data[[2]][,4]<0.05))
+
+
+
+#write.table(oddr, file = paste0('oddsRatio_Parents_',N,'_',n,'_','_',d,'_',psize,'_','.txt'))
+#cat(paste('this is the average of the odds ratio for the parents',mean(oddr),'\n', sep = ' '))
+#cat(paste('this is the average of fathers heterzygotes',avgMalHet,'and average female heterozygotes',avgFemHet,'\n',sep =' '))
+#cat(paste('number of fathers pvalues under 0.05 :',pvsM,'mothers:',pvsF,'\n', sep = ' '))
+
+#writ(paste('this is the average of the odds ratio for the parents',mean(oddr),'\n', sep = ' '))
+#cat(paste('this is the average of fathers heterzygotes',avgMalHet,'and average female heterozygotes',avgFemHet,'\n',sep =' '))
+#cat(paste('number of fathers pvalues under 0.05 :',pvsM,'mothers:',pvsF,'\n', sep = ' '))
+#cat(paste('the OR for pp : pq is <- ',m01,'the OR for qq to pq is <- ',m21,sep = ' ','\n'))
+
+
+

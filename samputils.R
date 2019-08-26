@@ -29,3 +29,28 @@ givesx <- function(numsexes)
 {
     return(round(runif(numsexes))) # entirely random, could be male or female either way.
 }
+
+
+ranD <- function(a,b){
+    if((a == 0) && (b == 2)){
+        return(TRUE)
+        
+    }else if((a == 1) && (b == 1)){
+        return(TRUE)
+        
+    }else if((a == 1) && (b == 0)){
+        return(TRUE)
+        
+    }else if((a == 2) && (b == 0)){
+        return(TRUE)
+        
+    }else if((a == 2) && (b == 1)){
+        return(TRUE)
+        
+    } else{
+        return(FALSE)
+    } 
+    
+}
+
+
